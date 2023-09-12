@@ -52,6 +52,17 @@
                 android:textSize="30sp"/>
 
         </LinearLayout>
+        <ImageButton
+            android:layout_width="30dp"
+            android:layout_height="30dp"
+            android:id="@+id/imagePicker"
+            android:src="@drawable/baseline_camera_alt_24"/>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/questionImageView"/>
+
         <EditText
             android:layout_width="match_parent"
             android:layout_height="150dp"

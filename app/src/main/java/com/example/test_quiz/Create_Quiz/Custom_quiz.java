@@ -1,18 +1,30 @@
 package com.example.test_quiz.Create_Quiz;
 
+import android.Manifest;
+import android.app.Activity;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.cardview.widget.CardView;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.RadioButton;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -27,6 +39,8 @@ import com.google.gson.Gson;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -61,6 +75,10 @@ public class Custom_quiz extends AppCompatActivity {
     private DatabaseReference myRef;
     CardView fab,f2,fl;
 
+    ImageButton imageButton;
+    ImageView imageView;
+    private static final int CAMERA_REQUEST = 1888;
+    private static final int MY_CAMERA_PERMISSION_CODE = 100;
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
 
@@ -208,6 +226,75 @@ public class Custom_quiz extends AppCompatActivity {
                 }
             }
         });
+
+        imageButton=findViewById(R.id.imagePicker);
+        imageView=findViewById(R.id.questionImageView);
+        imageButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (ContextCompat.checkSelfPermission(Custom_quiz.this,Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED)
+                {
+                    ActivityCompat.requestPermissions(Custom_quiz.this,new String[]{Manifest.permission.CAMERA}, MY_CAMERA_PERMISSION_CODE);
+                }
+                else
+                {
+                    Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                    startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                }
+            }
+        });
+
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == MY_CAMERA_PERMISSION_CODE)
+        {
+            if (grantResults[0] == PackageManager.PERMISSION_GRANTED)
+            {
+                Toast.makeText(this, "camera permission granted", Toast.LENGTH_LONG).show();
+                Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                startActivityForResult(cameraIntent, CAMERA_REQUEST);
+            }
+            else
+            {
+                Toast.makeText(this, "camera permission denied", Toast.LENGTH_LONG).show();
+            }
+        }
+    }
+
+    /**
+     * Start an activity for result
+     * @param requestCode
+     * @param resultCode
+     * @param data
+     */
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+            Bitmap theImage = (Bitmap) data.getExtras().get("data");
+            imageView.setImageBitmap(theImage);
+            imageView.setScaleType(ImageView.ScaleType.FIT_XY);
+            String photo = getEncodedString(theImage);
+            //setDataToDataBase();
+        }
+    }
+
+
+    private String getEncodedString(Bitmap bitmap){
+
+        ByteArrayOutputStream os = new ByteArrayOutputStream();
+
+        bitmap.compress(Bitmap.CompressFormat.JPEG,100, os);
+
+      /* or use below if you want 32 bit images
+
+       bitmap.compress(Bitmap.CompressFormat.PNG, (0–100 compression), os);*/
+        byte[] imageArr = os.toByteArray();
+        return Base64.encodeToString(imageArr, Base64.URL_SAFE);
 
     }
 
